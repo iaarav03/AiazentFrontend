@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import formBackground from '../../images/form.jpg'; // Adjust the path as needed
 
 const CreateAgentForm = () => {
   const [agentData, setAgentData] = useState({
     name: '',
     createdBy: '',
     websiteUrl: '',
-    contactEmail: '',
+    ownerEmail: '',
     accessModel: '',
     pricingModel: '',
     category: '',
@@ -22,24 +25,17 @@ const CreateAgentForm = () => {
     price: '',
     individualPlan: '',
     enterprisePlan: '',
-    freeTrial: false,
     subscriptionModel: '',
     refundPolicy: '',
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setAgentData({
-      ...agentData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
+    const { name, value } = e.target;
+    setAgentData({ ...agentData, [name]: value });
   };
 
   const handleFileChange = (e) => {
-    setAgentData({
-      ...agentData,
-      [e.target.name]: e.target.files[0],
-    });
+    setAgentData({ ...agentData, [e.target.name]: e.target.files[0] });
   };
 
   const handleSubmit = async (e) => {
@@ -47,279 +43,330 @@ const CreateAgentForm = () => {
 
     const formData = new FormData();
     Object.keys(agentData).forEach((key) => {
-      formData.append(key, agentData[key]);
+      if (key === 'keyFeatures' || key === 'useCases' || key === 'tags') {
+        // Send comma-separated strings
+        formData.append(key, agentData[key]);
+      } else {
+        formData.append(key, agentData[key]);
+      }
     });
 
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/agents/create',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      console.log(response.data);
-      alert('Agent created successfully!');
+      await axios.post('http://localhost:5000/api/agents/create', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success('Agent created successfully!');
     } catch (error) {
       console.error('Error creating agent:', error);
-      alert('Failed to create agent.');
+      toast.error('Failed to create agent.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white p-8 shadow-xl rounded-lg">
-      <h2 className="text-4xl font-bold text-center text-pink-500 mb-8">Create AI Agent</h2>
+    <div
+    className="min-h-screen bg-fixed"
+    style={{
+      backgroundImage: `url(${formBackground})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed', // Ensures the background image is fixed
+    }}
+  >
+    {/* Main Container with padding to prevent navbar overlap */}
+    <div className=" min-h-screen  flex items-center justify-center overflow-auto">
+      <form onSubmit={handleSubmit} className="max-w-3xl w-full mx-4 bg-white bg-opacity-90 p-8 shadow-2xl rounded-lg">
+      
+        <h2 className="text-4xl font-bold text-center text-primaryBlue2 mb-8">Create AI Agent</h2>
 
-      <div className="space-y-6">
-        {/* Input fields - one per line */}
-        <div>
-          <label className="block text-sm font-medium text-gray-400">AI Agent Name *</label>
-          <input
-            type="text"
-            name="name"
-            value={agentData.name}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter AI Agent name"
-          />
-        </div>
+        <div className="grid grid-cols-2 gap-6">
+          {/* Basic Input Fields */}
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">AI Agent Name *</label>
+            <input
+              type="text"
+              name="name"
+              value={agentData.name}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter AI Agent name"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Created By</label>
-          <input
-            type="text"
-            name="createdBy"
-            value={agentData.createdBy}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter creator name"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Created By</label>
+            <input
+              type="text"
+              name="createdBy"
+              value={agentData.createdBy}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter creator name"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Website URL *</label>
-          <input
-            type="text"
-            name="websiteUrl"
-            value={agentData.websiteUrl}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter website or GitHub URL"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Website URL *</label>
+            <input
+              type="text"
+              name="websiteUrl"
+              value={agentData.websiteUrl}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter website or GitHub URL"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Contact Email</label>
-          <input
-            type="email"
-            name="contactEmail"
-            value={agentData.contactEmail}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter email"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Owner Email</label>
+            <input
+              type="email"
+              name="ownerEmail"
+              value={agentData.ownerEmail}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter email"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Access Model *</label>
-          <div className="mt-1 grid grid-cols-3 gap-4 text-gray-900">
-            <label className="flex items-center">
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Access Model *</label>
+            <div className="mt-2 flex gap-4 text-primaryBlue">
+              {['Open Source', 'Closed Source', 'API'].map((model) => (
+                <label key={model} className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="accessModel"
+                    value={model}
+                    onChange={handleChange}
+                    className="form-radio text-primaryBlue"
+                  />
+                  <span>{model}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Pricing Model *</label>
+            <div className="mt-2 flex gap-4 text-primaryBlue">
+              {['Free', 'Freemium', 'Paid'].map((model) => (
+                <label key={model} className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="pricingModel"
+                    value={model}
+                    onChange={handleChange}
+                    className="form-radio text-primaryBlue"
+                  />
+                  <span>{model}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Category *</label>
+            <input
+              type="text"
+              name="category"
+              value={agentData.category}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter category"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Industry *</label>
+            <input
+              type="text"
+              name="industry"
+              value={agentData.industry}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter industry"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Tagline</label>
+            <input
+              type="text"
+              name="tagline"
+              value={agentData.tagline}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter tagline"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Description</label>
+            <textarea
+              name="description"
+              value={agentData.description}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter description"
+              rows="3"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Key Features (comma separated)</label>
+            <input
+              type="text"
+              name="keyFeatures"
+              value={agentData.keyFeatures}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="e.g., Feature1, Feature2, Feature3"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Use Cases (comma separated)</label>
+            <input
+              type="text"
+              name="useCases"
+              value={agentData.useCases}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="e.g., UseCase1, UseCase2, UseCase3"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Tags (comma separated)</label>
+            <input
+              type="text"
+              name="tags"
+              value={agentData.tags}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="e.g., Tag1, Tag2, Tag3"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Price *</label>
+            <input
+              type="text"
+              name="price"
+              value={agentData.price}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter price"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Individual Plan</label>
+            <input
+              type="text"
+              name="individualPlan"
+              value={agentData.individualPlan}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter individual plan"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Enterprise Plan</label>
+            <input
+              type="text"
+              name="enterprisePlan"
+              value={agentData.enterprisePlan}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter enterprise plan"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Subscription Model</label>
+            <input
+              type="text"
+              name="subscriptionModel"
+              value={agentData.subscriptionModel}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter subscription model"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Refund Policy</label>
+            <input
+              type="text"
+              name="refundPolicy"
+              value={agentData.refundPolicy}
+              onChange={handleChange}
+              className="mt-1 p-3 w-full border border-primaryBlue2 bg-white rounded-lg focus:ring-2 focus:ring-primaryBlue2"
+              placeholder="Enter refund policy"
+            />
+          </div>
+
+          {/* File Inputs */}
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Logo *</label>
+            <div className="mt-1 flex items-center">
               <input
-                type="radio"
-                name="accessModel"
-                value="Open Source"
-                onChange={handleChange}
-                className="form-radio mr-2"
+                type="file"
+                name="logo"
+                onChange={handleFileChange}
+                className="hidden"
+                id="logo-upload"
               />
-              Open Source
-            </label>
-            <label className="flex items-center">
+              <label
+                htmlFor="logo-upload"
+                className="cursor-pointer bg-primaryBlue2 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700"
+              >
+                Upload Logo
+              </label>
+              {agentData.logo && (
+                <span className="ml-4 text-sm text-gray-600">{agentData.logo.name}</span>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primaryBlue">Thumbnail Image</label>
+            <div className="mt-1 flex items-center">
               <input
-                type="radio"
-                name="accessModel"
-                value="Closed Source"
-                onChange={handleChange}
-                className="form-radio mr-2"
+                type="file"
+                name="thumbnail"
+                onChange={handleFileChange}
+                className="hidden"
+                id="thumbnail-upload"
               />
-              Closed Source
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="accessModel"
-                value="API"
-                onChange={handleChange}
-                className="form-radio mr-2"
-              />
-              API
-            </label>
+              <label
+                htmlFor="thumbnail-upload"
+                className="cursor-pointer bg-primaryBlue2 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700"
+              >
+                Upload Thumbnail
+              </label>
+              {agentData.thumbnail && (
+                <span className="ml-4 text-sm text-gray-600">{agentData.thumbnail.name}</span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Pricing Model *</label>
-          <div className="mt-1 grid grid-cols-3 gap-4 text-gray-900">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pricingModel"
-                value="Free"
-                onChange={handleChange}
-                className="form-radio mr-2"
-              />
-              Free
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pricingModel"
-                value="Freemium"
-                onChange={handleChange}
-                className="form-radio mr-2"
-              />
-              Freemium
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pricingModel"
-                value="Paid"
-                onChange={handleChange}
-                className="form-radio mr-2"
-              />
-              Paid
-            </label>
-          </div>
+        {/* Submit Button */}
+        <div className="text-center mt-14">
+          <button
+            type="submit"
+            className="bg-gradient-to-r from-primaryBlue2 to-blue-500 hover:from-blue-700 hover:to-primaryBlue2 text-white py-3 px-8 rounded-lg shadow-xl"
+          >
+            Submit AI Agent
+          </button>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Category *</label>
-          <input
-            type="text"
-            name="category"
-            value={agentData.category}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter category"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Industry *</label>
-          <input
-            type="text"
-            name="industry"
-            value={agentData.industry}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter industry"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Price *</label>
-          <input
-            type="text"
-            name="price"
-            value={agentData.price}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter price"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Tagline</label>
-          <input
-            type="text"
-            name="tagline"
-            value={agentData.tagline}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter tagline"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Description</label>
-          <textarea
-            name="description"
-            value={agentData.description}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter description"
-            rows="3"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Free Trial</label>
-          <input
-            type="checkbox"
-            name="freeTrial"
-            checked={agentData.freeTrial}
-            onChange={handleChange}
-            className="mt-1 form-checkbox h-5 w-5 text-pink-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Subscription Model</label>
-          <input
-            type="text"
-            name="subscriptionModel"
-            value={agentData.subscriptionModel}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter subscription model"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Refund Policy</label>
-          <input
-            type="text"
-            name="refundPolicy"
-            value={agentData.refundPolicy}
-            onChange={handleChange}
-            className="mt-1 p-3 w-full border border-gray-600 bg-gray-100 rounded-lg text-gray-900"
-            placeholder="Enter refund policy"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Logo *</label>
-          <input
-            type="file"
-            name="logo"
-            onChange={handleFileChange}
-            className="mt-1 w-full text-gray-900"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400">Thumbnail Image</label>
-          <input
-            type="file"
-            name="thumbnail"
-            onChange={handleFileChange}
-            className="mt-1 w-full text-gray-900"
-          />
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <div className="text-center mt-8">
-        <button
-          type="submit"
-          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white py-3 px-8 rounded-lg shadow-lg"
-        >
-          Submit AI Agent
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
+    </div>
+    
   );
 };
 

@@ -16,9 +16,14 @@ export const AllAgents = () => {
         setFilters(newFilters);
       };
   return (
-    <div className='mt-5 absolute'>
+    <div className='mt-20 flex flex-row' >
+      <div>
         <Filter onFilterChange={handleFilterChange} />
-        <AgentList filters={filters} />
+      </div>
+        <div>
+            <AgentList filters={filters} />
+        </div>
+      
     </div>
   )
 }

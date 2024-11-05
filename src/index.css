@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities;/* Webkit browsers (Chrome, Safari) */
+@tailwind utilities;
+
+/* Webkit browsers (Chrome, Safari) */
 /* For WebKit browsers (Chrome, Safari, Edge) */
 /* For WebKit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
@@ -11,6 +13,10 @@
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
+.custom-editor .ck-editor__editable_inline {
+  padding-left: 20px !important;
+}
+
 
 /* Scrollbar thumb */
 ::-webkit-scrollbar-thumb {

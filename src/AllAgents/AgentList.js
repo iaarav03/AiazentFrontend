@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaThumbsUp, FaArrowRight, FaArrowAltCircleLeft, FaArrowAltCircleRight } from 'react-icons/fa';
+import { FaThumbsUp, FaHeart, FaRegHeart, FaArrowRight,FaRegBookmark } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,7 +17,9 @@ export const AgentList = ({ filters }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [likeCounts, setLikeCounts] = useState({});
-
+  const [wishlist, setWishlist] = useState([]);
+  const [saveCounts, setSaveCounts] = useState({});
+const agentListRef = useRef(null);
   useEffect(() => {
     const fetchAgents = async () => {
       try {
@@ -27,10 +29,14 @@ export const AgentList = ({ filters }) => {
         setTopAgents(sortedAgents.slice(0, 10)); // Get top 10 agents based on likes
 
         const initialLikes = {};
+        const initialSaves = {};
         response.data.forEach(agent => {
           initialLikes[agent._id] = agent.likes || 0;
+          initialSaves[agent._id] = agent.savedByCount || 0;
         });
         setLikeCounts(initialLikes);
+        setSaveCounts(initialSaves);
+
       } catch (error) {
         console.error('Error fetching agents:', error);
         toast.error('Error fetching agents!');
@@ -38,18 +44,6 @@ export const AgentList = ({ filters }) => {
     };
     fetchAgents();
   }, []);
-
-  const handleNextSlide = () => {
-    if (currentSlide < topAgents.length - SLIDES_TO_SHOW) {
-      setCurrentSlide(currentSlide + 1);
-    }
-  };
-
-  const handlePrevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
 
   const handleLike = async (event, agentId) => {
     event.preventDefault();
@@ -61,21 +55,34 @@ export const AgentList = ({ filters }) => {
         toast.error('You need to log in to like agents!');
         return;
       }
+      const url = `http://localhost:5000/api/users/like/${agentId}`;
+      const method = 'post';
 
-      const response = await axios.put(`http://localhost:5000/api/users/${agentId}/like`, {}, {
+      const response = await axios({
+        method,
+        url,
         headers: {
           'Authorization': `Bearer ${token}`,
         },
         withCredentials: true,
       });
+      
 
       if (response.status === 200) {
         toast.success('Agent liked successfully!');
         setLikeCounts((prevLikeCounts) => ({
           ...prevLikeCounts,
-          [agentId]: prevLikeCounts[agentId] + 1,
+          [agentId]: response.data.agent.likes
         }));
       }
+      if (response.status === 201) {
+        toast.success('Like removed successfully!');
+        setLikeCounts((prevLikeCounts) => ({
+          ...prevLikeCounts,
+          [agentId]: response.data.agent.likes
+        }));
+      }
+
     } catch (error) {
       if (error.response && error.response.status === 400 && error.response.data.message === 'You have already liked this agent') {
         toast.info('You have already liked this agent!');
@@ -86,7 +93,53 @@ export const AgentList = ({ filters }) => {
     }
   };
 
+  const handleWishlist = async (event, agentId) => {
+    event.preventDefault();
+    event.stopPropagation();
+  
+    try {
+      const token = Cookies.get('token');
+      if (!token) {
+        toast.error('You need to log in to save agents!');
+        return;
+      }
+
+    
+      const url = `http://localhost:5000/api/users/wishlist/${agentId}`;
+      const method = 'post';
+
+      const response = await axios({
+        method,
+        url,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+
+      if (response.status === 200) {
+        toast.success(`Agent Added to  wishlist!`);
+        setSaveCounts((prevSaveCounts) => ({
+          ...prevSaveCounts,
+          [agentId]: response.data.agent.savedByCount,
+        }));
+      }
+      if (response.status === 201) {
+        toast.success(`Agent Removed from  wishlist!`);
+       
+        setSaveCounts((prevSaveCounts) => ({
+          ...prevSaveCounts,
+          [agentId]: response.data.agent.savedByCount,
+        }));
+      }
+    } catch (error) {
+      toast.error('An error occurred while updating the wishlist.');
+      console.error('Error updating wishlist:', error);
+    }
+  };
+
   const filteredAgents = agents.filter((agent) => {
+    
     return (
       (filters.category === 'Category' || agent.category === filters.category) &&
       (filters.industry === 'Industry' || agent.industry === filters.industry) &&
@@ -103,12 +156,12 @@ export const AgentList = ({ filters }) => {
     return filteredAgents.slice(start, end);
   };
 
+  
+
   const scrollToTop = () => {
-    const agentListTop = document.querySelector('.agent-list').offsetTop;
-    window.scrollTo({
-      top: agentListTop,
-      behavior: 'smooth',
-    });
+    if (agentListRef.current) {
+      agentListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const handlePageChange = (page) => {
@@ -131,79 +184,20 @@ export const AgentList = ({ filters }) => {
   };
 
   return (
-    <div className="p-10 mx-auto agent-list pl-40 " style={{ maxWidth: '80%' }}>
-      <ToastContainer />
+    <div className="p-10 mx-auto  max-h-screen overflow-y-auto "  >
+ 
 
       {/* Top Agents Carousel */}
-      <motion.div
-        className="mb-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <h2 className="text-3xl font-bold text-primaryBlue mb-6 text-center">Top Agents</h2>
-
-        <div className="relative">
-          <div className="flex overflow-hidden">
-            <motion.div
-              className="flex space-x-6"
-              initial={{ x: 0 }}
-              animate={{ x: -currentSlide * 320 }} // Each slide is 320px wide
-              transition={{ duration: 0.5 }}
-            >
-              {topAgents.slice(currentSlide, currentSlide + SLIDES_TO_SHOW).map((agent, index) => (
-                <div
-                  key={agent._id}
-                  className="relative p-6 rounded-lg shadow-lg bg-blue-100"
-                  style={{ minWidth: '300px' }}
-                >
-                  <Link to={`/agent/${agent._id}`}>
-                    <div className="flex justify-center mb-4">
-                      <img
-                        src={agent.logo || 'https://via.placeholder.com/80'}
-                        alt={agent.name}
-                        className="h-14 w-14 rounded-full object-cover"
-                      />
-                    </div>
-                    <h3 className="text-lg font-bold">{agent.name}</h3>
-                    <p className="text-sm">{agent.category || 'Category'}</p>
-                    <p className="text-sm mt-4">{agent.shortDescription || 'No description available.'}</p>
-                    <p className="text-2xl font-bold mt-4">{agent.likes || 0}%</p>
-                    <div className="absolute bottom-4 right-4 h-8 w-8 bg-white text-primaryBlue rounded-full flex items-center justify-center">
-                      <FaArrowRight />
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Carousel Controls */}
-          {/* <button
-            onClick={handlePrevSlide}
-            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-primaryBlue text-white p-2 rounded-full"
-            disabled={currentSlide === 0}
-          >
-            <FaArrowAltCircleLeft size={24} />
-          </button>
-          <button
-            onClick={handleNextSlide}
-            className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-primaryBlue text-white p-2 rounded-full"
-            disabled={currentSlide >= topAgents.length - SLIDES_TO_SHOW}
-          >
-            <FaArrowAltCircleRight size={24} />
-          </button> */}
-        </div>
-      </motion.div>
+    
 
       {/* Main Agents Section */}
       <motion.div
-        className="flex justify-between items-center mb-6"
+        className="flex justify-between  items-center mb-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h2 className="text-3xl font-bold text-primaryBlue">Agents</h2>
+        <h2 className="text-3xl font-bold text-primaryBlue" ref={agentListRef}>Agents</h2>
         <div className="text-sm text-gray-500">Sort by: Newest</div>
       </motion.div>
 
@@ -260,6 +254,14 @@ export const AgentList = ({ filters }) => {
                       >
                         <FaThumbsUp className="mr-2" /> {likeCounts[agent._id] || 0}
                       </button>
+                      <button
+                        className="flex items-center text-primaryBlue hover:text-blue-900 transition-all ml-4"
+                        onClick={(event) => handleWishlist(event, agent._id)}
+                      >
+                         <FaRegBookmark className="mr-2" />  {saveCounts[agent._id] || 0} 
+                       
+                      </button>
+                      
                     </div>
                   </div>
                 </div>

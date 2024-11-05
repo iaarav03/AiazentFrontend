@@ -54,10 +54,10 @@ export const Filter = ({ onFilterChange }) => {
   };
 
   return (
-    <div className="relative ">
+    <div className=" ">
       {/* Filter Toggle Icon */}
       <div
-        className="fixed  left-6 z-50 p-3 cursor-pointer text-primaryBlue hover:text-blue-700 transition-all duration-300"
+        className="   z-50 p-3 cursor-pointer text-primaryBlue hover:text-blue-700 transition-all duration-300"
         onClick={toggleFilter}
       >
         <FaFilter size={30} />
@@ -65,11 +65,11 @@ export const Filter = ({ onFilterChange }) => {
 
       {/* Filter Panel */}
       <div
-        className={`fixed left-0  h-full w-72 bg-white shadow-xl transform overflow-y-auto no-scrollbar ${
+        className={`   h-full w-72 bg-white shadow-xl transform overflow-y-auto no-scrollbar ${
           isFilterOpen ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-300 ease-in-out p-6 z-40`}
+        } transition-transform duration-300 ease-in-out px-6 z-40`}
       >
-        <div className="flex flex-col space-y-6 mt-6">
+        <div className="flex flex-col space-y-6 ">
           
           {/* Categories Section */}
           <div className="mt-4 flex flex-row justify-between items-center cursor-pointer hover:text-primaryBlue transition-all duration-300">

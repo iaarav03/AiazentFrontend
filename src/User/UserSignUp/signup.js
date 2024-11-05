@@ -1,201 +1,191 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import signupimage from '../../Images/signup.jpg'; // Ensure the image path is correct
-import { FaGoogle } from 'react-icons/fa'; 
-import { ToastContainer, toast } from 'react-toastify'; 
-import 'react-toastify/dist/ReactToastify.css'; 
+import { Link, useNavigate } from 'react-router-dom';
+import { FaGoogle } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import login from '../../Images/login.jpg.jpg';
 
 export const Signup = () => {
-  // State for form data
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     password: '',
+    isAdmin: false, // Optional field for admin registration
   });
 
-  // Handle input change
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === 'checkbox' ? checked : value,
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      // Show a loading message
       toast.info('Signing up...');
-
-      // Make a POST request to the backend
-      const response = await axios.post('http://localhost:5000/api/users/signup', formData,
-        {
-          withCredentials: true, // Enable credentials
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+      const response = await axios.post('http://localhost:5000/api/users/signup', formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       if (response.status === 201) {
-        toast.dismiss();
-        toast.success('Signup successful!'); // Show success message
+        toast.success('Signup successful!');
+        const user = response.data.user;
+        if (user.isAdmin) {
+          navigate('/admin-dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
-        toast.dismiss();
-        toast.error(response.data.message || 'Signup failed!'); // Show error message
+        toast.error(response.data.message || 'Signup failed!');
       }
     } catch (error) {
-      toast.dismiss();
-      console.error('Signup error:', error);
       toast.error('Error occurred during signup!');
     }
   };
 
   return (
-    <div className="flex max-w-screen h-screen justify-center bg-gray-100 no-scrollbar">
-      {/* Left Section - Image */}
-      <div className="w-1/2 flex items-center justify-center h-full">
-        <img
-          src={signupimage}
-          className="object-contain mb-16"
-          style={{ height: '90%' }} 
-          alt="Signup Illustration"
-        />
-      </div>
+    <div
+      className=" bg-center h-screen overflow-y-auto"
+      style={{
+        backgroundImage: `url(${login})`,
+        transform: 'scaleX(-1)',
+      }}
+    >
+      <div
+        className="flex transform scale-x-[-1] "
+      >
+     
+        <div className="w-1/2 flex  items-center justify-center bg-opacity-55 max-h-screen mt-24 no-scollbar">
+          <div className="w-full max-w-md px-8 py-10">
+            <h1 className="text-4xl font-bold text-[rgb(73,125,168)] mb-4">Create Your Account</h1>
+            <p className="text-lg text-gray-600 mb-6">Join us and explore AI agents.</p>
 
-      {/* Right Section - Form */}
-      <div className="w-1/2 flex items-center justify-center overflow-y-auto" style={{ height: '93%' }}>
-        <div className="max-w-lg w-full p-4">
-          <div className="mb-6 text-left">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Namasté</h1>
-            <p className="text-lg text-gray-600">Create your account to explore AI agents</p>
-            
-          </div>
-          
-
-          {/* Continue with Google button */}
-          <div>
-            <button className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-3 rounded-lg font-semibold flex justify-center items-center space-x-2 transition duration-300 shadow-sm">
+            {/* Google Signup Button */}
+            <button
+              className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-3 rounded-lg font-semibold flex justify-center items-center space-x-2 transition duration-300 shadow-sm mb-4"
+            >
               <FaGoogle className="text-red-500" />
               <span>Continue with Google</span>
             </button>
-          </div>
 
-          {/* OR separator */}
-          <div className="relative flex py-5 items-center">
-            <div className="flex-grow border-t border-gray-300"></div>
-            <span className="flex-shrink mx-4 text-gray-400">OR</span>
-            <div className="flex-grow border-t border-gray-300"></div>
-          </div>
+            {/* OR Divider */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="border-b w-1/4"></div>
+              <span className="mx-4 text-gray-400">OR</span>
+              <div className="border-b w-1/4"></div>
+            </div>
 
-          {/* Form */}
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            {/* First Name and Last Name in one row */}
-            <div className="flex space-x-4">
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+            {/* Form */}
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">First Name</label>
                 <input
-                  className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 placeholder-gray-400 text-gray-900 shadow-sm"
                   type="text"
                   name="firstName"
-                  placeholder="John"
+                  className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgb(73,125,168)] outline-none"
                   value={formData.firstName}
                   onChange={handleChange}
-                  style={{ textIndent: '5px' }}
                   required
                 />
               </div>
 
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Last Name</label>
                 <input
-                  className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 placeholder-gray-400 text-gray-900 shadow-sm"
                   type="text"
                   name="lastName"
-                  placeholder="Doe"
+                  className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgb(73,125,168)] outline-none"
                   value={formData.lastName}
                   onChange={handleChange}
-                  style={{ textIndent: '5px' }}
                   required
                 />
               </div>
-            </div>
 
-            {/* Email */}
-            <div className='flex space-x-4'>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgb(73,125,168)] outline-none"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            
-            <div className='w-1/2'>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 placeholder-gray-400 text-gray-900 shadow-sm"
-                type="email"
-                name="email"
-                placeholder="johndoe@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                
-                style={{ textIndent: '5px' }}
-                
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgb(73,125,168)] outline-none"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            {/* Phone Number */}
-            <div className='w-1/2'>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-              <input
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 placeholder-gray-400 text-gray-900 shadow-sm"
-                type="tel"
-                name="phone"
-                placeholder="123-456-7890"
-                value={formData.phone}
-                onChange={handleChange}
-                style={{ textIndent: '5px' }}
-                required
-              />
-            </div>
-</div>
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <input
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500 placeholder-gray-400 text-gray-900 shadow-sm"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                style={{ textIndent: '5px' }}
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgb(73,125,168)] outline-none"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            {/* Register Button with margin */}
-            <div className="mt-6">
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  name="isAdmin"
+                  id="isAdmin"
+                  checked={formData.isAdmin}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <label htmlFor="isAdmin" className="text-sm font-medium text-gray-700">Register as Admin</label>
+              </div>
+
               <button
-                className="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-bold transition duration-300 shadow-lg"
+                className="w-full bg-[rgb(73,125,168)] text-white py-3 rounded-lg font-bold transition duration-300 shadow-lg"
                 type="submit"
               >
-                Register
+                Sign Up
               </button>
-            </div>
+            </form>
+
+            {/* Already have an account */}
             <div className="mt-6 text-center">
-            
-            <Link
-              to="/login"
-              className="text-pink-500 hover:underline font-bold"
-            >
-              Already have an account?
-            </Link>
+              <Link to="/login" className="text-[rgb(73,125,168)] hover:underline">
+                Already have an account? Log in.
+              </Link>
+            </div>
           </div>
-          </form>
+        </div>
+
+        {/* Right side welcome message */}
+        <div className="w-1/2 relative  flex items-center justify-center">
+          <div className="relative z-10 text-center text-primaryBlue2 px-8 mb-40">
+            <h1 className="text-5xl font-bold mb-4">Welcome to AiAzent!</h1>
+            <p className="text-lg max-w-md">
+              Discover the power of AI with us. Sign up to explore and create AI agents
+              that help solve real-world challenges.
+            </p>
+          </div>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };
